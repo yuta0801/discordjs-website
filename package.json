@@ -14,12 +14,14 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "browser-lang": "^0.1.0",
     "core-js": "^2.6.5",
     "fuse.js": "^3.4.5",
     "konami-code-js": "^0.8.1",
     "marked": "^0.7.0",
     "semver": "^6.3.0",
     "vue": "^2.6.10",
+    "vue-i18n": "^8.15.0",
     "vue-router": "^3.0.3"
   },
   "devDependencies": {

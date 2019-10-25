@@ -18,7 +18,7 @@ import { SHITS } from '../../util';
 
 export default {
   name: 'docs-loader',
-  props: ['source', 'tag', 'darkMode'],
+  props: ['locale', 'source', 'tag', 'darkMode'],
 
   data() {
     return {
@@ -30,7 +30,9 @@ export default {
 
   methods: {
     loadDocs() {
+      console.warn('loadDocs!')
       if (this.loadingTag === this.tag) return;
+      console.warn('loadDocs!!!!!!')
       this.docs = null;
       this.error = null;
 
@@ -165,6 +167,10 @@ export default {
   },
 
   watch: {
+    locale() {
+      this.loadDocs();
+    },
+
     source() {
       this.loadDocs();
     },

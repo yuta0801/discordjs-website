@@ -1,7 +1,7 @@
 <template>
   <div id="docs">
-    <docs-navbar :sources="sources" :source="source" />
-    <router-view :source="source" :tag="tag" :darkMode="darkMode" @toggleDarkMode="toggleDarkMode" @setRepository="setRepository" />
+    <docs-navbar :locales="locales" :locale="locale" :sources="sources" :source="source" />
+    <router-view :locale="locale" :source="source" :tag="tag" :darkMode="darkMode" @toggleDarkMode="toggleDarkMode" @setRepository="setRepository" />
   </div>
 </template>
 
@@ -21,6 +21,8 @@ export default {
 
   data() {
     return {
+      locales: [{ id: 'en-US', name: 'English' }],
+      locale: 'en-US',
       sources: {
         [MainSource.id]: MainSource,
         [CollectionSource.id]: CollectionSource,
@@ -33,6 +35,10 @@ export default {
   },
 
   methods: {
+    setLocale(locale) {
+      this.locale = locale
+    },
+
     setSource(id) {
       this.source = this.sources[id];
     },
@@ -43,6 +49,14 @@ export default {
     },
 
     handleRoute(route) {
+      // Set the locale
+      if (route.params.locale) {
+        console.log(222, route.params.locale)
+        this.setLocale(route.params.locale);
+      } else {
+        this.setLocale(this.locale);
+      }
+
       // Set the source, or redirect to a default route
       if (route.params.source && this.sources[route.params.source]) {
         this.setSource(route.params.source);
@@ -87,6 +101,18 @@ export default {
     setRepository(repo) {
       this.$emit('setRepository', repo);
     },
+
+    async fetchLocales() {
+      const json = res => {
+        if (!res.ok) throw new Error('Failed to fetch locales data file from GitHub');
+        return res.json();
+      };
+      const repo = 'https://raw.githubusercontent.com/discordjs-japan/i18n';
+      const stats = await fetch(`${repo}/master/stats.json`).then(json);
+      const locales = stats.map(({ path, name }) => ({ id: path, name }))
+      const availableLocales = locales//.filter(locale => locale.path)
+      this.locales.push(...availableLocales);
+    },
   },
 
   watch: {
@@ -97,6 +123,7 @@ export default {
 
   created() {
     this.handleRoute(this.$route);
+    this.fetchLocales();
   },
 };
 </script>

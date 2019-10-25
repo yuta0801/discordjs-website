@@ -3,6 +3,11 @@
     <container>
       View docs for
 
+      <select v-model="localeChoice">
+        <option v-for="locale in locales" :value="locale.id" :key="locale.id">{{ locale.name }}</option>
+        <option v-if="!locales.length === 1" disabled>Loading...</option>
+      </select>
+
       <select v-model="sourceChoice">
         <option v-for="source in sources" :value="source.id" :key="source.id">{{ source.name }}</option>
       </select>
@@ -25,10 +30,11 @@ import { SHITS } from '../../util';
 
 export default {
   name: 'docs-navbar',
-  props: ['sources', 'source'],
+  props: ['locales', 'locale', 'sources', 'source'],
 
   data() {
     return {
+      localeChoice: this.locale,
       sourceChoice: this.source.id,
       tagChoice: null,
       tags: null,
@@ -57,6 +63,12 @@ export default {
   },
 
   watch: {
+    localeChoice(locale) {
+      console.log(11, locale, this.$route.params.locale)
+      if (this.$route.params.locale !== locale)
+        this.$router.push({ name: this.$route.name, params: { ...this.$route.params, locale }, query: this.$route.query });
+    },
+
     sourceChoice(src) {
       if (this.$route.params.source !== src) this.$router.push({ name: 'docs-source', params: { source: src } });
     },
