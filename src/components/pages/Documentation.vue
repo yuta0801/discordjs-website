@@ -1,7 +1,7 @@
 <template>
   <div id="docs">
-    <docs-navbar :sources="sources" :source="source" />
-    <router-view :source="source" :tag="tag" :darkMode="darkMode" @toggleDarkMode="toggleDarkMode" @setRepository="setRepository" />
+    <docs-navbar :langs="langs" :lang="lang" :sources="sources" :source="source" />
+    <router-view :lang="lang" :source="source" :tag="tag" :darkMode="darkMode" @toggleDarkMode="toggleDarkMode" @setRepository="setRepository" />
   </div>
 </template>
 
@@ -21,6 +21,8 @@ export default {
 
   data() {
     return {
+      langs: {},
+      lang: { id: 'en-US', path: 'en-US', name: 'English' },
       sources: {
         [MainSource.id]: MainSource,
         [CollectionSource.id]: CollectionSource,
@@ -33,6 +35,10 @@ export default {
   },
 
   methods: {
+    setLang(id) {
+      this.lang = this.langs[id]
+    },
+
     setSource(id) {
       this.source = this.sources[id];
     },
@@ -43,6 +49,14 @@ export default {
     },
 
     handleRoute(route) {
+      // Set the lang
+      if (route.query.lang && this.langs[route.query.lang] &&
+          this.lang.id !== route.query.lang) {
+        console.log('Set lang', route.query.lang)
+        this.setLang(route.query.lang);
+        return
+      }
+
       // Set the source, or redirect to a default route
       if (route.params.source && this.sources[route.params.source]) {
         this.setSource(route.params.source);
@@ -87,6 +101,20 @@ export default {
     setRepository(repo) {
       this.$emit('setRepository', repo);
     },
+
+    async fetchLangs() {
+      const json = res => {
+        if (!res.ok) throw new Error('Failed to fetch langs data file from GitHub');
+        return res.json();
+      };
+      const repo = 'https://raw.githubusercontent.com/discordjs-japan/i18n';
+      const stats = await fetch(`${repo}/master/stats.json`).then(json);
+      const availableLangMap = [this.lang, ...stats]
+        .filter(lang => lang.path)
+        .map(({ code, ...props }) => ({ id: code, ...props }))
+        .reduce((map, lang) => ({ ...map, [lang.id]: lang }), {})
+      this.langs = availableLangMap;
+    },
   },
 
   watch: {
@@ -97,6 +125,7 @@ export default {
 
   created() {
     this.handleRoute(this.$route);
+    this.fetchLangs();
   },
 };
 </script>

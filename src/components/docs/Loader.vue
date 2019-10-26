@@ -1,7 +1,7 @@
 <template>
   <div id="docs-body">
     <transition name="fade-resize" mode="out-in">
-      <router-view v-if="docs" :docs="docs" :darkMode="darkMode" @toggleDarkMode="toggleDarkMode" @setRepository="setRepository" />
+      <router-view v-if="docs" :docs="docs" :darkMode="darkMode" :key="$route.query.lang" @toggleDarkMode="toggleDarkMode" @setRepository="setRepository" />
       <slide v-else>
         <loading v-if="!error" />
         <p v-else id="docs-error">
@@ -18,11 +18,12 @@ import { SHITS } from '../../util';
 
 export default {
   name: 'docs-loader',
-  props: ['source', 'tag', 'darkMode'],
+  props: ['lang', 'source', 'tag', 'darkMode'],
 
   data() {
     return {
       docs: null,
+      messages: null,
       error: null,
       loadingTag: null,
     };
@@ -119,6 +120,19 @@ export default {
       });
     },
 
+    async loadMessages() {
+      const [lang, repo, tag] = [this.lang, this.source.repo, this.tag];
+      console.log('Loading messages', lang.name);
+      const json = res => {
+        if (!res.ok) throw new Error('Failed to fetch locales data file from GitHub');
+        return res.json();
+      };
+      const endpoint = 'https://raw.githubusercontent.com/discordjs-japan/i18n';
+      const url = `/master/content/${lang.path}/docs/${repo.split('/')[1]}/${tag}.json`;
+      const messages = await fetch(endpoint + url).then(json);
+      this.messages = messages;
+    },
+
     scroll(fromRoute) {
       if (this.$route.query.scrollTo && this.docs) {
         const scroll = () => {
@@ -177,6 +191,10 @@ export default {
       if (!from) setTimeout(this.scroll, 700);
     },
 
+    lang() {
+      this.loadMessages();
+    },
+
     $route(to, from) {
       this.scroll(from);
     },
@@ -184,6 +202,7 @@ export default {
 
   created() {
     this.loadDocs();
+    this.loadMessages();
   },
 
   mounted() {

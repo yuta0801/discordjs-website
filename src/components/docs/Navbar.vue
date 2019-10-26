@@ -3,6 +3,11 @@
     <container>
       View docs for
 
+      <select v-model="langChoice">
+        <option v-for="lang in langs" :value="lang.id" :key="lang.id">{{ lang.name }}</option>
+        <option v-if="langs.length === 1" disabled>Loading...</option>
+      </select>
+
       <select v-model="sourceChoice">
         <option v-for="source in sources" :value="source.id" :key="source.id">{{ source.name }}</option>
       </select>
@@ -25,10 +30,11 @@ import { SHITS } from '../../util';
 
 export default {
   name: 'docs-navbar',
-  props: ['sources', 'source'],
+  props: ['lang', 'langs', 'sources', 'source'],
 
   data() {
     return {
+      langChoice: this.lang.id,
       sourceChoice: this.source.id,
       tagChoice: null,
       tags: null,
@@ -57,6 +63,13 @@ export default {
   },
 
   watch: {
+    langChoice(lang) {
+      // TODO: save lang to localStorage
+      console.log('Lang changed', lang)
+      if (this.$route.params.lang !== lang)
+        this.$router.push({ name: this.$route.name, query: { ...this.$route.query, lang } });
+    },
+
     sourceChoice(src) {
       if (this.$route.params.source !== src) this.$router.push({ name: 'docs-source', params: { source: src } });
     },
